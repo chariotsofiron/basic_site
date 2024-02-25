@@ -1,0 +1,12 @@
+<form hx-post="/login" hx-swap="outerHTML" method="post">
+    <h1>Login</h1>
+    {% if message.len() == 0 %}
+        <input name="username" type="text" placeholder="Username" required />
+        <input name="password" type="password" placeholder="Password" required />
+    {% else %}
+        <input name="username" type="text" placeholder="Username" aria-invalid="true" required />
+        <input name="password" type="password" placeholder="Password" aria-invalid="true" required />
+        <small>{{message}}</small>
+    {% endif %}
+    <button type="submit">Submit</button>
+</form>

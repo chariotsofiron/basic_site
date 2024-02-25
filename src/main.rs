@@ -1,5 +1,6 @@
 #![warn(clippy::all, clippy::pedantic, clippy::nursery)]
 mod app_state;
+mod models;
 mod router;
 mod templates;
 

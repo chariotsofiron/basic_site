@@ -2,8 +2,14 @@ use askama::Template;
 
 #[derive(Template)]
 #[template(path = "navbar.html")]
-pub struct Component {}
+pub struct Component<'a> {
+    username: &'a str,
+}
 
 pub fn build() -> String {
-    Component {}.render().unwrap()
+    Component { username: "" }.render().unwrap()
+}
+
+pub fn build_with_username(username: &str) -> String {
+    Component { username }.render().unwrap()
 }

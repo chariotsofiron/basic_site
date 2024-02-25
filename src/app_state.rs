@@ -1,8 +1,17 @@
+use axum_extra::extract::{
+    cookie::{Cookie, SameSite},
+    CookieJar,
+};
 use sqlx::{sqlite::SqlitePoolOptions, Pool, Sqlite};
+
+use crate::models::{
+    session::{self, get_session_by_id},
+    user::{self, get_user_by_id, UserRecord},
+};
 
 #[derive(Clone)]
 pub struct AppState {
-    database: Pool<Sqlite>,
+    pub database: Pool<Sqlite>,
 }
 
 /// Connects to the database using the `DATABASE_URL` environment variable.
@@ -20,25 +29,39 @@ impl AppState {
         Self { database }
     }
 
-    // /// Returns Ok(user_id) if the session is valid, otherwise Err(sqlx::Error).
-    // pub fn authenticate(&self, session_id: &str) -> Result<i64, sqlx::Error> {
-    //     // if let Some(cookie) = jar.get("session_id") {
-    //     //     let session_id = cookie.value();
-    //     //     match sqlx::query!("SELECT user_id FROM session WHERE id = ?", session_id)
-    //     //         .fetch_one(&state.database)
-    //     //         .await
-    //     //     {
-    //     //         Ok(row) => {
-    //     //             let user_id = row.user_id;
-    //     //             return Html(HomePage::make_page_logged_in("bob")).into_response();
-    //     //         }
-    //     //         Err(_) => return StatusCode::INTERNAL_SERVER_ERROR.into_response(),
-    //     //     }
+    pub async fn authenticate(&self, jar: CookieJar) -> Option<UserRecord> {
+        let session_id = jar.get("session_id")?.value();
+        let session = get_session_by_id(&self.database, session_id).await.ok()?;
+        let user = get_user_by_id(&self.database, session.user_id).await.ok()?;
 
-    //     // sqlx::query!("SELECT user_id FROM session WHERE id = ?", session_id)
-    //     //     .fetch_one(&self.database)
-    //     //     .map(|row| row.user_id)
+        Some(user)
+    }
 
-    //     Ok(1)
-    // }
+    /// Create a session id for the user.
+    pub async fn make_auth_session(&self, user_id: u32) -> Cookie<'static> {
+        // random 128-bit hex value
+        let session_id = format!("{:#018x}", rand::random::<u128>());
+        session::insert(&self.database, &session_id, user_id)
+            .await
+            .expect("failed to insert session id into database");
+
+        let cookie = Cookie::build(("session_id", session_id))
+            .path("/")
+            .same_site(SameSite::Strict)
+            .http_only(true)
+            .max_age(time::Duration::WEEK)
+            .build();
+        cookie
+    }
+
+    /// Creates a new session id
+    pub async fn login(&self, username: &str, password: &str) -> Option<Cookie<'static>> {
+        match user::get_user_by_username(&self.database, username).await {
+            Ok(user) if user.password == password => {
+                let cookie = self.make_auth_session(user.id).await;
+                Some(cookie)
+            }
+            Ok(_) | Err(_) => None,
+        }
+    }
 }

@@ -6,8 +6,10 @@ An example website with a simple tech stack.
 - Axum for web server
 - sqlx for database access
 - askama for templating
+- htmx for reactivity
 - picocss for styling
 - docker for deployment
+- justfile for development recipes
 
 ## Features
 

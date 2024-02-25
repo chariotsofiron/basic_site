@@ -11,7 +11,7 @@ axum-extra = { version = "0.9.2", features = ["typed-header", "cookie"] }
 tokio = { version = "1", features = ["macros", "rt-multi-thread", "fs"] }
 askama = "0.12.1"
 
-sqlx = { version = "0.7.1", features = ["runtime-tokio-native-tls", "sqlite", "macros"]}
+sqlx = { version = "0.7.3", features = ["runtime-tokio-native-tls", "sqlite", "macros"]}
 serde = { version = "1.0", features = ["derive"] }
 dotenvy = "0.15.7"
 rand = "0.8.5"
