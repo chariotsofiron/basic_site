@@ -4,7 +4,7 @@ use axum::Router;
 
 mod about;
 mod home;
-mod session;
+mod login;
 mod signup;
 
 pub fn router(state: AppState) -> Router {
@@ -13,9 +13,9 @@ pub fn router(state: AppState) -> Router {
         .route("/about", get(about::get))
         .route(
             "/login",
-            get(session::get)
-                .post(session::post)
-                .delete(session::delete),
+            get(login::get)
+                .post(login::post)
+                .delete(login::delete),
         )
         .route("/signup", get(signup::get).post(signup::post))
         .with_state(state)

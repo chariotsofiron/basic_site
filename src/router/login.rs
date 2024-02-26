@@ -5,6 +5,7 @@ use axum::{
 };
 use axum_extra::extract::{cookie::Cookie, CookieJar};
 use serde::Deserialize;
+use tracing::info;
 
 use crate::{
     app_state::AppState,
@@ -30,7 +31,10 @@ pub async fn post(
     Form(form): Form<Credentials>,
 ) -> impl IntoResponse {
     match state.login(&form.username, &form.password).await {
-        Some(cookie) => ([("HX-Redirect", "/")], jar.add(cookie)).into_response(),
+        Some(cookie) => {
+            info!("User {} logged in", form.username);
+            ([("HX-Redirect", "/")], jar.add(cookie)).into_response()
+        }
         None => login::build_with_error_message("Incorrect username / password combination")
             .into_response(),
     }

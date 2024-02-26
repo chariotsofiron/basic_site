@@ -8,7 +8,7 @@
         <li><a href="/login">Log in</a></li>
         <li><a href="/signup">Sign up</a></li>
         {% else %}
-        <li><a href="/profile">Profile {{username.len()}}</a></li>
+        <li><a href="/profile">Profile</a></li>
         <li><a href="/" hx-delete="/login" hx-trigger="click" hx-swap="none" class="secondary">Logout</a></li>
         {% endif %}
     </ul>
