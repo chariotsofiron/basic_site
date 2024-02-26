@@ -10,7 +10,7 @@ use tracing::warn;
 
 use crate::{
     app_state::AppState,
-    models::user,
+    models::user_record,
     templates::{base, navbar, signup},
 };
 
@@ -34,7 +34,7 @@ pub async fn post(
 ) -> impl IntoResponse {
     let timestamp = 100;
 
-    match user::insert(&state.database, &form.username, &form.password, timestamp).await {
+    match user_record::insert(&state.database, &form.username, &form.password, timestamp).await {
         Ok(user_id) => {
             let cookie = state.make_auth_session(user_id).await;
             ([("HX-Redirect", "/")], jar.add(cookie)).into_response()

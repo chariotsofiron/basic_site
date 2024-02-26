@@ -29,8 +29,7 @@ pub async fn post(
     jar: CookieJar,
     Form(form): Form<Credentials>,
 ) -> impl IntoResponse {
-    let cookie = state.login(&form.username, &form.password).await;
-    match cookie {
+    match state.login(&form.username, &form.password).await {
         Some(cookie) => ([("HX-Redirect", "/")], jar.add(cookie)).into_response(),
         None => login::build_with_error_message("Incorrect username / password combination")
             .into_response(),

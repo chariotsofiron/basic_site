@@ -5,8 +5,8 @@ use axum_extra::extract::{
 use sqlx::{sqlite::SqlitePoolOptions, Pool, Sqlite};
 
 use crate::models::{
-    session::{self, get_session_by_id},
-    user::{self, get_user_by_id, UserRecord},
+    session_record::{self, get_session_by_id},
+    user_record::{self, get_user_by_id, UserRecord},
 };
 
 #[derive(Clone)]
@@ -41,7 +41,7 @@ impl AppState {
     pub async fn make_auth_session(&self, user_id: u32) -> Cookie<'static> {
         // random 128-bit hex value
         let session_id = format!("{:#018x}", rand::random::<u128>());
-        session::insert(&self.database, &session_id, user_id)
+        session_record::insert(&self.database, &session_id, user_id)
             .await
             .expect("failed to insert session id into database");
 
@@ -56,7 +56,7 @@ impl AppState {
 
     /// Creates a new session id
     pub async fn login(&self, username: &str, password: &str) -> Option<Cookie<'static>> {
-        match user::get_user_by_username(&self.database, username).await {
+        match user_record::get_user_by_username(&self.database, username).await {
             Ok(user) if user.password == password => {
                 let cookie = self.make_auth_session(user.id).await;
                 Some(cookie)
