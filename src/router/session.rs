@@ -3,7 +3,7 @@ use axum::{
     response::{Html, IntoResponse, Redirect},
     Form,
 };
-use axum_extra::extract::CookieJar;
+use axum_extra::extract::{cookie::Cookie, CookieJar};
 use serde::Deserialize;
 
 use crate::{
@@ -34,4 +34,15 @@ pub async fn post(
         None => login::build_with_error_message("Incorrect username / password combination")
             .into_response(),
     }
+}
+
+pub async fn delete(state: State<AppState>, jar: CookieJar) -> impl IntoResponse {
+    if let Some(cookie) = jar.get("session_id") {
+        state.logout(cookie.value()).await;
+    }
+    (
+        [("HX-Redirect", "/")],
+        jar.remove(Cookie::build("session_id")),
+    )
+        .into_response()
 }

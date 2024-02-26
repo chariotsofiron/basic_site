@@ -3,7 +3,7 @@ use askama::Template;
 #[derive(Template)]
 #[template(path = "navbar.html")]
 pub struct Component<'a> {
-    username: &'a str,
+    pub username: &'a str,
 }
 
 pub fn build() -> String {

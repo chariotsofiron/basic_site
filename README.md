@@ -8,17 +8,13 @@ An example website with a simple tech stack.
 - askama for templating
 - htmx for reactivity
 - picocss for styling
-- docker for deployment
 - justfile for development recipes
+- todo: docker deployment
 
 ## Features
 
-- sign up
-- sign in
-- navigate pages
-- view sessions
-- delete sessions
-- profile page
+- log in, log out, sign up (passwords stored in plaintext)
+- multiple pages (home, profile)
 
 ## Setup
 

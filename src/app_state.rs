@@ -64,4 +64,10 @@ impl AppState {
             Ok(_) | Err(_) => None,
         }
     }
+
+    pub async fn logout(&self, session_id: &str) {
+        session_record::delete(&self.database, session_id)
+            .await
+            .expect("failed to delete session id from database");
+    }
 }

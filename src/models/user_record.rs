@@ -63,5 +63,5 @@ pub async fn insert(
     )
     .execute(db)
     .await
-    .map(|row| row.last_insert_rowid() as u32)
+    .map(|row| u32::try_from(row.last_insert_rowid()).unwrap())
 }

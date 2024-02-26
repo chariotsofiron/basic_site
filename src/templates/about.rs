@@ -1,7 +1,7 @@
 use askama::Template;
 
 #[derive(Template)]
-#[template(path = "home.html")]
+#[template(path = "about.html")]
 pub struct Component<'a> {
     name: &'a str,
 }
