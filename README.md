@@ -1,4 +1,4 @@
-# Website
+# Basic Site
 
 An example website with a simple tech stack.
 
