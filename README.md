@@ -20,6 +20,8 @@ An example website with a simple tech stack.
 
 ```shell
 sqlx migrate add --source db/migrations init
+
+docker run -v ./db:/db basic_site
 ```
 
 ### `.env` file
@@ -29,3 +31,8 @@ MIGRATIONS_PATH=db/migrations
 DATABASE_PATH=db/db.db
 DATABASE_URL=sqlite:${DATABASE_PATH}
 ```
+
+## Further reading
+
+- https://joeymckenzie.tech/blog/templates-with-rust-axum-htmx-askama
+- https://www.bitswired.com/en/blog/post/rustgpt-journey-rust-htmx-web-dev
