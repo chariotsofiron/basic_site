@@ -23,6 +23,7 @@ ENV MIGRATIONS_PATH=db/migrations
 ENV DATABASE_PATH=db/db.db
 ENV DATABASE_URL=sqlite:${DATABASE_PATH}
 
+# we need the database to exist in order to build the application
 RUN cargo install sqlx-cli
 RUN sqlx database create
 RUN sqlx migrate run --source $MIGRATIONS_PATH
@@ -33,7 +34,7 @@ RUN cargo build --release
 FROM debian:bookworm-slim
 
 COPY --from=builder /basic_site/target/release/basic_site .
-COPY --from=builder /basic_site/db ./db
+# COPY --from=builder /basic_site/db ./db
 
 ENV MIGRATIONS_PATH=db/migrations
 ENV DATABASE_PATH=db/db.db
