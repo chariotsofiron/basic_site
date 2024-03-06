@@ -9,10 +9,9 @@ services:
     volumes:
       - ./Caddyfile:/etc/caddy/Caddyfile
 
-  rust-app:
-    build:
-      context: .
-      dockerfile: Dockerfile
+  basic_site:
+    image: basic_site:latest
     volumes:
       - ./db:/db
+      - ./.env:/.env
 

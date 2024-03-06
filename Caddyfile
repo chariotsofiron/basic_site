@@ -1,3 +1,7 @@
-localhost {
-  reverse_proxy rust-app:3000
+benburk.ca {
+  reverse_proxy basic_site:3000
+}
+
+www.benburk.ca {
+  redir https://benburk.ca{uri}
 }

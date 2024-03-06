@@ -16,7 +16,14 @@ An example website with a simple tech stack.
 - log in, log out, sign up (passwords stored in plaintext)
 - multiple pages (home, profile)
 
-## Setup
+## Run locally
+
+```shell
+sqlx migrate add --source db/migrations init
+cargo run --release
+```
+
+## Deploy
 
 ```shell
 sqlx migrate add --source db/migrations init
