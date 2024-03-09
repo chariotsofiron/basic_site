@@ -39,8 +39,13 @@ sudo usermod -aG docker $USER
 # build the image
 docker build -t basic_site .
 docker save -o basic_site_app.tar basic_site:latest
+gcloud compute scp basic_site_app.tar Caddyfile docker-compose.yml implygate@basic-site:~/
+gcloud compute scp db/db.db implygate@basic-site:~/db/db.db
+gcloud compute scp .env implygate@basic-site:~/.env
 
 # ssh into VM
-git clone 
+gcloud compute ssh <username>@<NAME>
+docker load -i basic_site_app.tar
+docker compose up -d
 ```
 
