@@ -1,9 +1,11 @@
 use sqlx::SqlitePool;
 
+use crate::app_state::Timestamp;
+
 pub struct UserRecord {
     pub id: u32,
     pub username: String,
-    pub password: String,
+    pub password_hash: String,
     pub created_at: i64,
 }
 
@@ -14,7 +16,7 @@ pub async fn get_user_by_id(db: &SqlitePool, id: u32) -> Result<UserRecord, sqlx
         SELECT
             id as "id: u32",
             username,
-            password,
+            password_hash,
             created_at
         FROM 'user'
         WHERE id = ?
@@ -35,7 +37,7 @@ pub async fn get_user_by_username(
         SELECT
             id as "id: u32",
             username,
-            password,
+            password_hash,
             created_at
         FROM 'user'
         WHERE username = ?
@@ -49,16 +51,16 @@ pub async fn get_user_by_username(
 pub async fn insert(
     db: &SqlitePool,
     username: &str,
-    password: &str,
-    created_at: i64,
+    password_hash: &str,
+    created_at: Timestamp,
 ) -> Result<u32, sqlx::Error> {
     sqlx::query!(
         r#"
-        INSERT INTO user (username, password, created_at)
+        INSERT INTO user (username, password_hash, created_at)
         VALUES (?, ?, ?)
         "#,
         username,
-        password,
+        password_hash,
         created_at
     )
     .execute(db)

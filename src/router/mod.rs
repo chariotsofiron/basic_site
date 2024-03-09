@@ -13,9 +13,7 @@ pub fn router(state: AppState) -> Router {
         .route("/about", get(about::get))
         .route(
             "/login",
-            get(login::get)
-                .post(login::post)
-                .delete(login::delete),
+            get(login::get).post(login::post).delete(login::delete),
         )
         .route("/signup", get(signup::get).post(signup::post))
         .with_state(state)

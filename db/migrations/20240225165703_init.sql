@@ -1,8 +1,8 @@
 CREATE TABLE IF NOT EXISTS user(
-    id          INTEGER NOT NULL PRIMARY KEY AUTOINCREMENT,
-    username    TEXT NOT NULL UNIQUE,
-    password    TEXT NOT NULL,
-    created_at  INTEGER NOT NULL
+    id              INTEGER NOT NULL PRIMARY KEY AUTOINCREMENT,
+    username        TEXT NOT NULL UNIQUE,
+    password_hash   TEXT NOT NULL,
+    created_at      INTEGER NOT NULL
 );
 
 CREATE TABLE IF NOT EXISTS session(

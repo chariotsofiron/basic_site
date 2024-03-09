@@ -1,3 +1,5 @@
+use argon2::PasswordHasher;
+use argon2::{password_hash::SaltString, Argon2};
 use axum::{
     extract::State,
     http::StatusCode,
@@ -5,9 +7,11 @@ use axum::{
     Form,
 };
 use axum_extra::extract::CookieJar;
+use rand::rngs::OsRng;
 use serde::Deserialize;
 use tracing::warn;
 
+use crate::app_state::timestamp_micros;
 use crate::{
     app_state::AppState,
     models::user_record,
@@ -32,9 +36,29 @@ pub async fn post(
     jar: CookieJar,
     Form(form): Form<Credentials>,
 ) -> impl IntoResponse {
-    let timestamp = 100;
+    let timestamp = timestamp_micros();
 
-    match user_record::insert(&state.database, &form.username, &form.password, timestamp).await {
+    if !validate_username(&form.username) {
+        return signup::build_with_error_message("Invalid username").into_response();
+    }
+    if !validate_password(&form.password) {
+        return signup::build_with_error_message("Invalid password").into_response();
+    }
+
+    let salt = SaltString::generate(&mut OsRng);
+    let argon2 = Argon2::default();
+    let Ok(password_hash) = argon2.hash_password(&form.password.as_bytes(), &salt) else {
+        return StatusCode::INTERNAL_SERVER_ERROR.into_response();
+    };
+
+    match user_record::insert(
+        &state.database,
+        &form.username,
+        &password_hash.to_string(),
+        timestamp,
+    )
+    .await
+    {
         Ok(user_id) => {
             let cookie = state.make_auth_session(user_id).await;
             ([("HX-Redirect", "/")], jar.add(cookie)).into_response()
@@ -47,4 +71,12 @@ pub async fn post(
             StatusCode::INTERNAL_SERVER_ERROR.into_response()
         }
     }
+}
+
+fn validate_username(username: &str) -> bool {
+    username.len() >= 3 && username.len() <= 20 && username.chars().all(char::is_alphanumeric)
+}
+
+fn validate_password(password: &str) -> bool {
+    password.len() >= 8 && password.len() <= 100 && password.is_ascii()
 }
