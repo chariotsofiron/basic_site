@@ -1,7 +1,7 @@
 #![warn(clippy::all, clippy::pedantic, clippy::nursery)]
 mod app_state;
 mod models;
-mod router;
+mod pages;
 mod templates;
 
 use app_state::AppState;
@@ -15,7 +15,7 @@ async fn main() {
     tracing_subscriber::fmt().init();
 
     let state = AppState::build().await;
-    let app = Router::new().nest("/", router::router(state));
+    let app = Router::new().nest("/", pages::router(state));
 
     let addr = SocketAddr::from(([0, 0, 0, 0], 3000));
     let listener = TcpListener::bind(addr)

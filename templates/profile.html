@@ -1,0 +1,23 @@
+<h1>{{ username }}</h1>
+
+<h5>Bio</h5>
+
+<p>Lorem ipsum dolor sit amet, consectetur adipisicing elit. Impedit eius cumque, sequi inventore vel quidem? Ex
+    eligendi quia ipsa velit rerum fugit. Officia magni delectus atque eligendi autem reprehenderit optio?</p>
+
+
+
+<h2>Profile settings</h2>
+
+<h3>Username</h3>
+
+{% if message.len() == 0 %}
+<input name="username" type="text" placeholder="Username" required />
+<input name="password" type="password" placeholder="Password" required />
+{% else %}
+<input name="username" type="text" placeholder="Username" aria-invalid="true" required />
+<input name="password" type="password" placeholder="Password" aria-invalid="true" required />
+<small>{{message}}</small>
+{% endif %}
+<button type="submit">Submit</button>
+</form>
