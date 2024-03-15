@@ -6,7 +6,7 @@ pub struct SessionRecord {
     pub user_id: u32,
 }
 
-pub async fn get_session_by_id(db: &SqlitePool, id: &str) -> Result<SessionRecord, sqlx::Error> {
+pub async fn get_session_by_id(db: &SqlitePool, id: &str) -> Result<Option<SessionRecord>, sqlx::Error> {
     sqlx::query_as!(
         SessionRecord,
         r#"
@@ -18,7 +18,7 @@ pub async fn get_session_by_id(db: &SqlitePool, id: &str) -> Result<SessionRecor
         "#,
         id
     )
-    .fetch_one(db)
+    .fetch_optional(db)
     .await
 }
 

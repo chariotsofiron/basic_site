@@ -1,16 +1,11 @@
-use axum::{
-    extract::State,
-    response::{Html, IntoResponse},
-};
-use axum_extra::extract::CookieJar;
-
 use crate::{
+    auth::UserExtractor,
     templates::{about, base, navbar},
-    AppState,
 };
+use axum::response::{Html, IntoResponse};
 
-pub async fn get(state: State<AppState>, jar: CookieJar) -> impl IntoResponse {
-    match state.authenticate(jar).await {
+pub async fn get(UserExtractor(user): UserExtractor) -> impl IntoResponse {
+    match user {
         Some(user) => Html(base(
             &navbar::build_with_username(&user.username),
             &about::build(),

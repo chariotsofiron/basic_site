@@ -1,19 +1,19 @@
 use axum::{
-    extract::State,
     response::{Html, IntoResponse, Redirect},
-    Form,
+    Extension, Form,
 };
 use axum_extra::extract::{cookie::Cookie, CookieJar};
 use serde::Deserialize;
+use sqlx::SqlitePool;
 use tracing::info;
 
 use crate::{
-    app_state::AppState,
+    auth::{self, UserExtractor},
     templates::{base, login, navbar},
 };
 
-pub async fn get(state: State<AppState>, jar: CookieJar) -> impl IntoResponse {
-    match state.authenticate(jar).await {
+pub async fn get(UserExtractor(user): UserExtractor) -> impl IntoResponse {
+    match user {
         Some(_) => Redirect::to("/").into_response(),
         None => Html(base(&navbar::build(), &login::build())).into_response(),
     }
@@ -26,11 +26,11 @@ pub struct Credentials {
 }
 
 pub async fn post(
-    state: State<AppState>,
     jar: CookieJar,
+    db: Extension<SqlitePool>,
     Form(form): Form<Credentials>,
 ) -> impl IntoResponse {
-    match state.login(&form.username, &form.password).await {
+    match auth::login(&db, &form.username, &form.password).await {
         Some(cookie) => {
             info!("User {} logged in", form.username);
             ([("HX-Redirect", "/")], jar.add(cookie)).into_response()
@@ -40,9 +40,9 @@ pub async fn post(
     }
 }
 
-pub async fn delete(state: State<AppState>, jar: CookieJar) -> impl IntoResponse {
+pub async fn delete(jar: CookieJar, db: Extension<SqlitePool>) -> impl IntoResponse {
     if let Some(cookie) = jar.get("session_id") {
-        state.logout(cookie.value()).await;
+        auth::logout(&db, cookie.value()).await;
     }
     (
         [("HX-Redirect", "/")],

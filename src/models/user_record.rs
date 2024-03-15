@@ -9,7 +9,7 @@ pub struct UserRecord {
     pub created_at: i64,
 }
 
-pub async fn get_user_by_id(db: &SqlitePool, id: u32) -> Result<UserRecord, sqlx::Error> {
+pub async fn get_user_by_id(db: &SqlitePool, id: u32) -> Result<Option<UserRecord>, sqlx::Error> {
     sqlx::query_as!(
         UserRecord,
         r#"
@@ -23,7 +23,7 @@ pub async fn get_user_by_id(db: &SqlitePool, id: u32) -> Result<UserRecord, sqlx
         "#,
         id
     )
-    .fetch_one(db)
+    .fetch_optional(db)
     .await
 }
 

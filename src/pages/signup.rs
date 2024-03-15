@@ -1,7 +1,7 @@
 use argon2::PasswordHasher;
 use argon2::{password_hash::SaltString, Argon2};
+use axum::Extension;
 use axum::{
-    extract::State,
     http::StatusCode,
     response::{Html, IntoResponse, Redirect},
     Form,
@@ -9,17 +9,18 @@ use axum::{
 use axum_extra::extract::CookieJar;
 use rand::rngs::OsRng;
 use serde::Deserialize;
+use sqlx::SqlitePool;
 use tracing::warn;
 
 use crate::app_state::timestamp_micros;
+use crate::auth::{self, UserExtractor};
 use crate::{
-    app_state::AppState,
     models::user_record,
     templates::{base, navbar, signup},
 };
 
-pub async fn get(state: State<AppState>, jar: CookieJar) -> impl IntoResponse {
-    match state.authenticate(jar).await {
+pub async fn get(UserExtractor(user): UserExtractor) -> impl IntoResponse {
+    match user {
         Some(_) => Redirect::to("/").into_response(),
         None => Html(base(&navbar::build(), &signup::build())).into_response(),
     }
@@ -32,8 +33,8 @@ pub struct Credentials {
 }
 
 pub async fn post(
-    state: State<AppState>,
     jar: CookieJar,
+    db: Extension<SqlitePool>,
     Form(form): Form<Credentials>,
 ) -> impl IntoResponse {
     let timestamp = timestamp_micros();
@@ -47,20 +48,13 @@ pub async fn post(
 
     let salt = SaltString::generate(&mut OsRng);
     let argon2 = Argon2::default();
-    let Ok(password_hash) = argon2.hash_password(&form.password.as_bytes(), &salt) else {
+    let Ok(password_hash) = argon2.hash_password(form.password.as_bytes(), &salt) else {
         return StatusCode::INTERNAL_SERVER_ERROR.into_response();
     };
 
-    match user_record::insert(
-        &state.database,
-        &form.username,
-        &password_hash.to_string(),
-        timestamp,
-    )
-    .await
-    {
+    match user_record::insert(&db, &form.username, &password_hash.to_string(), timestamp).await {
         Ok(user_id) => {
-            let cookie = state.make_auth_session(user_id).await;
+            let cookie = auth::make_auth_session(&db, user_id).await;
             ([("HX-Redirect", "/")], jar.add(cookie)).into_response()
         }
         Err(sqlx::Error::Database(err)) if err.is_unique_violation() => {
@@ -77,6 +71,6 @@ fn validate_username(username: &str) -> bool {
     username.len() >= 3 && username.len() <= 20 && username.chars().all(char::is_alphanumeric)
 }
 
-fn validate_password(password: &str) -> bool {
+const fn validate_password(password: &str) -> bool {
     password.len() >= 8 && password.len() <= 100 && password.is_ascii()
 }
