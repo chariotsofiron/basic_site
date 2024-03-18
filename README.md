@@ -9,11 +9,11 @@ An example website with a simple tech stack.
 - htmx for reactivity
 - picocss for styling
 - justfile for development recipes
-- todo: docker deployment
+- docker for deployment
 
 ## Features
 
-- log in, log out, sign up (passwords stored in plaintext)
+- log in, log out, sign up
 - multiple pages (home, profile)
 
 ## Run locally

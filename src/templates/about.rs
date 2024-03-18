@@ -2,8 +2,10 @@ use askama::Template;
 
 #[derive(Template)]
 #[template(path = "about.html")]
-pub struct Component {}
+pub struct Component<'a> {
+    username: &'a str,
+}
 
-pub fn build() -> String {
-    Component {}.render().unwrap()
+pub fn build(username: &str) -> String {
+    Component { username }.render().unwrap()
 }

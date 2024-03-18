@@ -1,17 +1,10 @@
 use axum::response::{Html, IntoResponse};
 
-use crate::{
-    auth::UserExtractor,
-    templates::{base, home, navbar},
-};
+use crate::{auth::UserExtractor, templates::home};
 
 pub async fn get(UserExtractor(user): UserExtractor) -> impl IntoResponse {
     match user {
-        Some(user) => Html(base(
-            &navbar::build_with_username(&user.username),
-            &home::build(&user.username),
-        ))
-        .into_response(),
-        None => Html(base(&navbar::build(), &home::build("world"))).into_response(),
+        Some(user) => Html(home::build(&user.username)).into_response(),
+        None => Html(home::build("")).into_response(),
     }
 }

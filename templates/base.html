@@ -10,10 +10,10 @@
 </head>
 
 <body>
-    {{ navbar|safe }}
+    {% include "navbar.html" %}
 
     <main class="container">
-        {{ content|safe }}
+        {% block content %}{% endblock %}
     </main>
 
 </body>

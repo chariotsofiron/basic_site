@@ -1,3 +1,6 @@
+{% extends "base.html" %}
+
+{% block content %}
 <form hx-post="/login" hx-swap="outerHTML" method="post">
     <h1>Login</h1>
     {% if message.len() == 0 %}
@@ -10,3 +13,4 @@
     {% endif %}
     <button type="submit">Submit</button>
 </form>
+{% endblock %}

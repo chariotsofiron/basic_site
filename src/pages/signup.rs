@@ -14,15 +14,12 @@ use tracing::warn;
 
 use crate::app_state::timestamp_micros;
 use crate::auth::{self, UserExtractor};
-use crate::{
-    models::user_record,
-    templates::{base, navbar, signup},
-};
+use crate::{models::user_record, templates::signup};
 
 pub async fn get(UserExtractor(user): UserExtractor) -> impl IntoResponse {
     match user {
         Some(_) => Redirect::to("/").into_response(),
-        None => Html(base(&navbar::build(), &signup::build())).into_response(),
+        None => Html(signup::build()).into_response(),
     }
 }
 
@@ -39,12 +36,12 @@ pub async fn post(
 ) -> impl IntoResponse {
     let timestamp = timestamp_micros();
 
-    if !validate_username(&form.username) {
-        return signup::build_with_error_message("Invalid username").into_response();
-    }
-    if !validate_password(&form.password) {
-        return signup::build_with_error_message("Invalid password").into_response();
-    }
+    // if !validate_username(&form.username) {
+    //     return signup::build_with_error_message("Invalid username").into_response();
+    // }
+    // if !validate_password(&form.password) {
+    //     return signup::build_with_error_message("Invalid password").into_response();
+    // }
 
     let salt = SaltString::generate(&mut OsRng);
     let argon2 = Argon2::default();
@@ -57,9 +54,9 @@ pub async fn post(
             let cookie = auth::make_auth_session(&db, user_id).await;
             ([("HX-Redirect", "/")], jar.add(cookie)).into_response()
         }
-        Err(sqlx::Error::Database(err)) if err.is_unique_violation() => {
-            signup::build_with_error_message("Username already taken").into_response()
-        }
+        // Err(sqlx::Error::Database(err)) if err.is_unique_violation() => {
+        //     signup::build_with_error_message("Username already taken").into_response()
+        // }
         Err(err) => {
             warn!("internal server error {}", err);
             StatusCode::INTERNAL_SERVER_ERROR.into_response()

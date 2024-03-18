@@ -1,4 +1,11 @@
-<h1>Hello, {{ name }}!</h1>
+{% extends "base.html" %}
+
+{% block content %}
+{% if username.len() == 0 %}
+<h1>Hello, world!</h1>
+{% else %}
+<h1>Hello, {{ username }}!</h1>
+{% endif %}
 
 <h2>Features</h2>
 
@@ -16,7 +23,8 @@
     <li>Rust</li>
     <li>Axum</li>
     <li>Sqlx</li>
-    <li>HTMX</li>
     <li>Askama</li>
+    <li>HTMX</li>
     <li>PicoCSS</li>
 </ul>
+{% endblock %}
