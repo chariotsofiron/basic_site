@@ -1,5 +1,8 @@
+use std::net::SocketAddr;
+
 use argon2::PasswordHasher;
 use argon2::{password_hash::SaltString, Argon2};
+use axum::extract::ConnectInfo;
 use axum::Extension;
 use axum::{
     http::StatusCode,
@@ -7,6 +10,8 @@ use axum::{
     Form,
 };
 use axum_extra::extract::CookieJar;
+use axum_extra::headers::UserAgent;
+use axum_extra::TypedHeader;
 use rand::rngs::OsRng;
 use serde::Deserialize;
 use sqlx::SqlitePool;
@@ -14,8 +19,9 @@ use tracing::warn;
 
 use crate::app_state::timestamp_micros;
 use crate::auth::{self, UserExtractor};
+use crate::models::user::User;
+use crate::templates::signup;
 use crate::templates::signup_form;
-use crate::{models::user, templates::signup};
 
 pub async fn get(UserExtractor(user): UserExtractor) -> impl IntoResponse {
     match user {
@@ -32,6 +38,8 @@ pub struct Credentials {
 
 pub async fn post(
     jar: CookieJar,
+    TypedHeader(user_agent): TypedHeader<UserAgent>,
+    ConnectInfo(addr): ConnectInfo<SocketAddr>,
     db: Extension<SqlitePool>,
     Form(form): Form<Credentials>,
 ) -> impl IntoResponse {
@@ -54,9 +62,17 @@ pub async fn post(
         return StatusCode::INTERNAL_SERVER_ERROR.into_response();
     };
 
-    match user::insert(&db, &form.username, &password_hash.to_string(), timestamp).await {
+    let user = User {
+        id: 0,
+        username: form.username.clone(),
+        password_hash: password_hash.to_string(),
+        created_at: timestamp,
+    };
+
+    match user.insert(&db).await {
         Ok(user_id) => {
-            let cookie = auth::make_auth_session(&db, user_id).await;
+            let cookie =
+                auth::create_session(&db, user_id, timestamp, addr.to_string(), user_agent).await;
             ([("HX-Redirect", "/")], jar.add(cookie)).into_response()
         }
         Err(sqlx::Error::Database(err)) if err.is_unique_violation() => {

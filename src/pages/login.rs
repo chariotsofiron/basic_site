@@ -1,14 +1,23 @@
+use std::net::SocketAddr;
+
 use axum::{
+    extract::ConnectInfo,
     response::{Html, IntoResponse, Redirect},
     Extension, Form,
 };
-use axum_extra::extract::{cookie::Cookie, CookieJar};
+use axum_extra::{
+    extract::{cookie::Cookie, CookieJar},
+    headers::UserAgent,
+    TypedHeader,
+};
 use serde::Deserialize;
 use sqlx::SqlitePool;
 use tracing::info;
 
 use crate::{
+    app_state::timestamp_micros,
     auth::{self, UserExtractor},
+    models::session::Session,
     templates::{login, login_form},
 };
 
@@ -27,10 +36,23 @@ pub struct Credentials {
 
 pub async fn post(
     jar: CookieJar,
+    TypedHeader(user_agent): TypedHeader<UserAgent>,
+    ConnectInfo(addr): ConnectInfo<SocketAddr>,
     db: Extension<SqlitePool>,
     Form(form): Form<Credentials>,
 ) -> impl IntoResponse {
-    match auth::login(&db, &form.username, &form.password).await {
+    let timestamp = timestamp_micros();
+
+    match auth::login(
+        &db,
+        &form.username,
+        &form.password,
+        timestamp,
+        addr.ip().to_string(),
+        user_agent,
+    )
+    .await
+    {
         Some(cookie) => {
             info!("User {} logged in", form.username);
             ([("HX-Redirect", "/")], jar.add(cookie)).into_response()
@@ -41,7 +63,9 @@ pub async fn post(
 
 pub async fn delete(jar: CookieJar, db: Extension<SqlitePool>) -> impl IntoResponse {
     if let Some(cookie) = jar.get("session_id") {
-        auth::logout(&db, cookie.value()).await;
+        Session::delete_by_id(&db, cookie.value())
+            .await
+            .expect("failed to delete session id from database");
     }
     (
         [("HX-Redirect", "/")],

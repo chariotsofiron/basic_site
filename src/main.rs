@@ -37,7 +37,10 @@ async fn main() {
         .expect("Failed to bind address");
 
     info!("Starting server on {addr}");
-    axum::serve(listener, app)
-        .await
-        .expect("Failed to start server");
+    axum::serve(
+        listener,
+        app.into_make_service_with_connect_info::<SocketAddr>(),
+    )
+    .await
+    .expect("Failed to start server");
 }
