@@ -15,7 +15,3 @@ pub fn build() -> String {
     .render()
     .unwrap()
 }
-
-pub fn build_with_error_message(username: &str, message: &str) -> String {
-    Component { username, message }.render().unwrap()
-}

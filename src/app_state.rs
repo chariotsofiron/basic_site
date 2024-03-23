@@ -1,6 +1,7 @@
 use std::time::SystemTime;
 
 pub type Timestamp = i64;
+pub type UserId = u32;
 
 #[derive(Default, Clone)]
 pub struct AppState {}

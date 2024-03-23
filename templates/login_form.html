@@ -1,0 +1,16 @@
+<form hx-post="/login" hx-swap="outerHTML" method="post">
+    <h1>Login</h1>
+    <fieldset>
+        {% if message.len() == 0 %}
+        <label>Username <input name="username" type="text" placeholder="Username" required /></label>
+        <label>Password <input name="password" type="password" placeholder="Password" required /></label>
+        {% else %}
+        <label>Username <input name="username" type="text" placeholder="Username" aria-invalid="true"
+                required /></label>
+        <label>Password <input name="password" type="password" placeholder="Password" aria-invalid="true" required />
+            <small>{{message}}</small>
+        </label>
+        {% endif %}
+        <button type="submit">Log in</button>
+    </fieldset>
+</form>

@@ -9,8 +9,9 @@ use axum::response::Response;
 use axum_extra::extract::{cookie::Cookie, cookie::SameSite, CookieJar};
 use sqlx::SqlitePool;
 
-use crate::models::session_record::{self, get_session_by_id};
-use crate::models::user_record::{self, get_user_by_id, UserRecord};
+use crate::app_state::UserId;
+use crate::models::session::{self, get_session_by_id};
+use crate::models::user::{self, get_user_by_id, User};
 
 /// Generates a random 128-bit hex string.
 fn generate_session_id() -> String {
@@ -28,19 +29,17 @@ fn build_session_cookie(session_id: &str) -> Cookie<'static> {
 }
 
 /// Create a session id for the user and return a cookie for it.
-pub async fn make_auth_session(db: &SqlitePool, user_id: u32) -> Cookie<'static> {
+pub async fn make_auth_session(db: &SqlitePool, user_id: UserId) -> Cookie<'static> {
     let session_id = generate_session_id();
 
-    session_record::insert(db, &session_id, user_id)
-        .await
-        .unwrap();
+    session::insert(db, &session_id, user_id).await.unwrap();
 
     build_session_cookie(&session_id)
 }
 
 /// Authenticate user and create a new session id
 pub async fn login(db: &SqlitePool, username: &str, password: &str) -> Option<Cookie<'static>> {
-    match user_record::get_user_by_username(db, username).await {
+    match user::get_user_by_username(db, username).await {
         Ok(user) => {
             let parsed_hash = PasswordHash::new(&user.password_hash).unwrap();
             if Argon2::default()
@@ -57,12 +56,12 @@ pub async fn login(db: &SqlitePool, username: &str, password: &str) -> Option<Co
 }
 
 pub async fn logout(db: &SqlitePool, session_id: &str) {
-    session_record::delete(db, session_id)
+    session::delete(db, session_id)
         .await
         .expect("failed to delete session id from database");
 }
 
-pub struct UserExtractor(pub Option<UserRecord>);
+pub struct UserExtractor(pub Option<User>);
 
 #[async_trait]
 impl<S> FromRequestParts<S> for UserExtractor

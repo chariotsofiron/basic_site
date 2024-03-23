@@ -14,7 +14,8 @@ use tracing::warn;
 
 use crate::app_state::timestamp_micros;
 use crate::auth::{self, UserExtractor};
-use crate::{models::user_record, templates::signup};
+use crate::templates::signup_form;
+use crate::{models::user, templates::signup};
 
 pub async fn get(UserExtractor(user): UserExtractor) -> impl IntoResponse {
     match user {
@@ -36,12 +37,16 @@ pub async fn post(
 ) -> impl IntoResponse {
     let timestamp = timestamp_micros();
 
-    // if !validate_username(&form.username) {
-    //     return signup::build_with_error_message("Invalid username").into_response();
-    // }
-    // if !validate_password(&form.password) {
-    //     return signup::build_with_error_message("Invalid password").into_response();
-    // }
+    let username_message = validate_username(&form.username);
+    let password_message = validate_password(&form.password);
+    if !username_message.is_empty() || !password_message.is_empty() {
+        return signup_form::build_with_error_message(
+            &form.username,
+            username_message,
+            password_message,
+        )
+        .into_response();
+    }
 
     let salt = SaltString::generate(&mut OsRng);
     let argon2 = Argon2::default();
@@ -49,25 +54,34 @@ pub async fn post(
         return StatusCode::INTERNAL_SERVER_ERROR.into_response();
     };
 
-    match user_record::insert(&db, &form.username, &password_hash.to_string(), timestamp).await {
+    match user::insert(&db, &form.username, &password_hash.to_string(), timestamp).await {
         Ok(user_id) => {
             let cookie = auth::make_auth_session(&db, user_id).await;
             ([("HX-Redirect", "/")], jar.add(cookie)).into_response()
         }
-        // Err(sqlx::Error::Database(err)) if err.is_unique_violation() => {
-        //     signup::build_with_error_message("Username already taken").into_response()
-        // }
+        Err(sqlx::Error::Database(err)) if err.is_unique_violation() => {
+            signup_form::build_with_error_message(&form.username, "Username already taken", "")
+                .into_response()
+        }
         Err(err) => {
-            warn!("internal server error {}", err);
+            warn!("internal server error {err}");
             StatusCode::INTERNAL_SERVER_ERROR.into_response()
         }
     }
 }
 
-fn validate_username(username: &str) -> bool {
-    username.len() >= 3 && username.len() <= 20 && username.chars().all(char::is_alphanumeric)
+fn validate_username(username: &str) -> &'static str {
+    if username.len() < 5 || username.len() > 20 || !username.chars().all(char::is_alphanumeric) {
+        "Username must be between 5 and 20 characters, and only contain letters / numbers."
+    } else {
+        ""
+    }
 }
 
-const fn validate_password(password: &str) -> bool {
-    password.len() >= 8 && password.len() <= 100 && password.is_ascii()
+const fn validate_password(password: &str) -> &'static str {
+    if password.len() < 8 || password.len() > 40 || !password.is_ascii() {
+        "Password must be between 8 and 40 characters and only contain ascii characters."
+    } else {
+        ""
+    }
 }

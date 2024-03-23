@@ -9,7 +9,7 @@ use tracing::info;
 
 use crate::{
     auth::{self, UserExtractor},
-    templates::login,
+    templates::{login, login_form},
 };
 
 pub async fn get(UserExtractor(user): UserExtractor) -> impl IntoResponse {
@@ -35,8 +35,7 @@ pub async fn post(
             info!("User {} logged in", form.username);
             ([("HX-Redirect", "/")], jar.add(cookie)).into_response()
         }
-        None => todo!(), /*login::build_with_error_message("Incorrect username / password combination")
-                         .into_response(),*/
+        None => login_form::build("Incorrect username / password combination").into_response(),
     }
 }
 

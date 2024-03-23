@@ -4,18 +4,16 @@ use askama::Template;
 #[template(path = "signup.html")]
 pub struct Component<'a> {
     username: &'a str,
-    message: &'a str,
+    username_message: &'a str,
+    password_message: &'a str,
 }
 
 pub fn build() -> String {
     Component {
         username: "",
-        message: "",
+        username_message: "",
+        password_message: "",
     }
     .render()
     .unwrap()
-}
-
-pub fn build_with_error_message(username: &str, message: &str) -> String {
-    Component { username, message }.render().unwrap()
 }

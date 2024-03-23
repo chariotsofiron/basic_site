@@ -1,0 +1,24 @@
+<form hx-post="/signup" hx-swap="outerHTML" method="post">
+    <h1>Sign up</h1>
+    <fieldset>
+        <label>Username
+            {% if username_message.len() != 0 %}
+            <input name="username" type="text" placeholder="Username" value="{{username}}" aria-invalid="true" required />
+            <small>{{username_message}}</small>
+            {% else %}
+            <input name="username" type="text" placeholder="Username" required />
+            {% endif %}
+        </label>
+
+        <label>Password
+            {% if password_message.len() != 0 %}
+            <input name="password" type="password" placeholder="Password" aria-invalid="true" required />
+            <small>{{password_message}}</small>
+            {% else %}
+            <input name="password" type="password" placeholder="Password" required />
+            {% endif %}
+        </label>
+
+    </fieldset>
+    <button type="submit">Sign up</button>
+</form>

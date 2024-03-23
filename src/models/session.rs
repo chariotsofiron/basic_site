@@ -1,31 +1,29 @@
 use sqlx::SqlitePool;
 use tracing::info;
 
-pub struct SessionRecord {
+use crate::app_state::{Timestamp, UserId};
+
+#[derive(sqlx::FromRow)]
+pub struct Session {
     pub id: String,
-    pub user_id: u32,
+    pub user_id: UserId,
+    // pub user_agent: String,
+    // pub created_at: Timestamp,
+    // pub expires_at: Timestamp,
 }
 
-pub async fn get_session_by_id(
+pub async fn get_session_by_id(db: &SqlitePool, id: &str) -> Result<Option<Session>, sqlx::Error> {
+    sqlx::query_as::<_, Session>("SELECT * FROM 'session' WHERE id = ?")
+        .bind(id)
+        .fetch_optional(db)
+        .await
+}
+
+pub async fn insert(
     db: &SqlitePool,
-    id: &str,
-) -> Result<Option<SessionRecord>, sqlx::Error> {
-    sqlx::query_as!(
-        SessionRecord,
-        r#"
-        SELECT
-            id,
-            user_id as "user_id: u32"
-        FROM 'session'
-        WHERE id = ?
-        "#,
-        id
-    )
-    .fetch_optional(db)
-    .await
-}
-
-pub async fn insert(db: &SqlitePool, session_id: &str, user_id: u32) -> Result<i64, sqlx::Error> {
+    session_id: &str,
+    user_id: UserId,
+) -> Result<i64, sqlx::Error> {
     sqlx::query!(
         "INSERT INTO session (id, user_id) VALUES (?, ?)",
         session_id,
