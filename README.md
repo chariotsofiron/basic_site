@@ -15,9 +15,8 @@ An example website with a simple tech stack and architecture.
 
 - [x] log in, log out, sign up
 - [x] password hashing with Argon2id
-- [x] view active sessions and delete them
+- [x] profile page with active sessions and delete them
 - [ ] change username / password
-- multiple pages (home, profile)
 
 ## Run locally
 
