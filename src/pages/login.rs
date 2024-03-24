@@ -1,7 +1,7 @@
 use std::net::SocketAddr;
 
 use axum::{
-    extract::ConnectInfo,
+    extract::{ConnectInfo, Path},
     response::{Html, IntoResponse, Redirect},
     Extension, Form,
 };
@@ -72,4 +72,12 @@ pub async fn delete(jar: CookieJar, db: Extension<SqlitePool>) -> impl IntoRespo
         jar.remove(Cookie::build("session_id")),
     )
         .into_response()
+}
+
+pub async fn delete_by_id(
+    Path(session_id): Path<String>,
+    Extension(db): Extension<SqlitePool>,
+) -> impl IntoResponse {
+    Session::delete_by_id(&db, &session_id).await.unwrap();
+    Html("").into_response()
 }

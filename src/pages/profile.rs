@@ -1,21 +1,24 @@
 use axum::{
-    extract::State,
-    response::{Html, IntoResponse},
+    http::StatusCode,
+    response::{Html, IntoResponse, Redirect},
+    Extension,
 };
-use axum_extra::extract::CookieJar;
+use sqlx::SqlitePool;
 
-use crate::{
-    templates::{about, base, navbar},
-    AppState,
-};
+use crate::{auth::UserExtractor, models::session::Session, templates::profile};
 
-pub async fn get(state: State<AppState>, jar: CookieJar) -> impl IntoResponse {
-    match state.authenticate(jar).await {
-        Some(user) => Html(base(
-            &navbar::build_with_username(&user.username),
-            &profile::build(),
-        ))
-        .into_response(),
-        None => Html(base(&navbar::build(), &profile::build())).into_response(),
+pub async fn get(
+    UserExtractor(user): UserExtractor,
+    db: Extension<SqlitePool>,
+) -> impl IntoResponse {
+    match user {
+        Some(user) => {
+            let Ok(sessions) = Session::get_all_for_user(&db, user.id).await else {
+                return StatusCode::INTERNAL_SERVER_ERROR.into_response();
+            };
+
+            Html(profile::build(&user.username, &sessions)).into_response()
+        }
+        None => Redirect::to("/").into_response(),
     }
 }

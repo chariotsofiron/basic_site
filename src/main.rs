@@ -6,7 +6,7 @@ mod pages;
 mod templates;
 
 use app_state::AppState;
-use axum::{Extension, Router};
+use axum::{http::header, response::IntoResponse, routing::get, Extension, Router};
 use sqlx::{sqlite::SqlitePoolOptions, SqlitePool};
 use std::net::SocketAddr;
 use tokio::net::TcpListener;
@@ -21,6 +21,25 @@ async fn connect_db() -> SqlitePool {
         .expect("Failed to connect to database")
 }
 
+async fn get_pico_css() -> impl IntoResponse {
+    (
+        [(header::CONTENT_TYPE, "text/css")],
+        include_str!("../static/pico.min.css"),
+    )
+}
+async fn get_pico_colors() -> impl IntoResponse {
+    (
+        [(header::CONTENT_TYPE, "text/css")],
+        include_str!("../static/pico.colors.css"),
+    )
+}
+async fn get_htmx() -> impl IntoResponse {
+    (
+        [(header::CONTENT_TYPE, "text/javascript")],
+        include_str!("../static/htmx.min.js"),
+    )
+}
+
 #[tokio::main]
 async fn main() {
     tracing_subscriber::fmt().init();
@@ -28,6 +47,9 @@ async fn main() {
     let pool = connect_db().await;
     let state = AppState::default();
     let app = Router::new()
+        .route("/pico.min.css", get(get_pico_css))
+        .route("/pico.colors.min.css", get(get_pico_colors))
+        .route("/htmx.min.js", get(get_htmx))
         .nest("/", pages::router(state))
         .layer(Extension(pool));
 

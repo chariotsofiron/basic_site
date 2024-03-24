@@ -11,15 +11,15 @@ pub struct User {
 }
 
 impl User {
-    pub async fn get_by_id(db: &SqlitePool, id: UserId) -> Result<Option<User>, sqlx::Error> {
-        sqlx::query_as::<_, User>("SELECT * FROM 'user' WHERE id = ?")
+    pub async fn get_by_id(db: &SqlitePool, id: UserId) -> Result<Option<Self>, sqlx::Error> {
+        sqlx::query_as::<_, Self>("SELECT * FROM 'user' WHERE id = ?")
             .bind(id)
             .fetch_optional(db)
             .await
     }
 
-    pub async fn get_by_username(db: &SqlitePool, username: &str) -> Result<User, sqlx::Error> {
-        sqlx::query_as::<_, User>("SELECT * FROM 'user' WHERE username = ?")
+    pub async fn get_by_username(db: &SqlitePool, username: &str) -> Result<Self, sqlx::Error> {
+        sqlx::query_as::<_, Self>("SELECT * FROM 'user' WHERE username = ?")
             .bind(username)
             .fetch_one(db)
             .await

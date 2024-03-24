@@ -14,7 +14,7 @@ pub struct Session {
 
 impl Session {
     pub async fn get_by_id(db: &SqlitePool, id: &str) -> Result<Option<Self>, sqlx::Error> {
-        sqlx::query_as::<_, Session>("SELECT * FROM 'session' WHERE id = ?")
+        sqlx::query_as::<_, Self>("SELECT * FROM 'session' WHERE id = ?")
             .bind(id)
             .fetch_optional(db)
             .await
@@ -27,6 +27,16 @@ impl Session {
             .execute(db)
             .await
             .map(|row| row.rows_affected())
+    }
+
+    pub async fn get_all_for_user(
+        db: &SqlitePool,
+        user_id: UserId,
+    ) -> Result<Vec<Self>, sqlx::Error> {
+        sqlx::query_as::<_, Self>("SELECT * FROM 'session' WHERE user_id = ?")
+            .bind(user_id)
+            .fetch_all(db)
+            .await
     }
 
     pub async fn insert(&self, db: &SqlitePool) -> Result<i64, sqlx::Error> {

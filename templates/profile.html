@@ -8,4 +8,31 @@
 <p>Lorem ipsum dolor sit amet, consectetur adipisicing elit. Impedit eius cumque, sequi inventore vel quidem? Ex
     eligendi quia ipsa velit rerum fugit. Officia magni delectus atque eligendi autem reprehenderit optio?</p>
 
+
+<h5>Sessions</h5>
+
+<table>
+    <thead>
+        <tr>
+            <th>Created&nbsp;at</th>
+            <th>IP&nbsp;Address</th>
+            <th>User&nbsp;agent</th>
+            <th></th>
+        </tr>
+    </thead>
+    <tbody hx-target="closest tr" hx-swap="outerHTML">
+        {% for session in sessions %}
+        <tr>
+            <td><small><kbd>{{session.created_at}}</kbd></small></td>
+            <td><small><kbd>{{session.ip_address}}</kbd></small></td>
+            <td><small><kbd>{{session.user_agent}}</kbd></small></td>
+            <td><button class="pico-background-red-600" hx-delete="/login/{{session.id}}">
+                    Delete
+                </button>
+            </td>
+        </tr>
+        {% endfor %}
+    </tbody>
+</table>
+
 {% endblock %}

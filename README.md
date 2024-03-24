@@ -1,6 +1,6 @@
 # Basic Site
 
-An example website with a simple tech stack.
+An example website with a simple tech stack and architecture.
 
 - Rust
 - Axum for web server
@@ -13,7 +13,10 @@ An example website with a simple tech stack.
 
 ## Features
 
-- log in, log out, sign up
+- [x] log in, log out, sign up
+- [x] password hashing with Argon2id
+- [x] view active sessions and delete them
+- [ ] change username / password
 - multiple pages (home, profile)
 
 ## Run locally
@@ -38,8 +41,3 @@ MIGRATIONS_PATH=db/migrations
 DATABASE_PATH=db/db.db
 DATABASE_URL=sqlite:${DATABASE_PATH}
 ```
-
-## Further reading
-
-- https://joeymckenzie.tech/blog/templates-with-rust-axum-htmx-askama
-- https://www.bitswired.com/en/blog/post/rustgpt-journey-rust-htmx-web-dev
