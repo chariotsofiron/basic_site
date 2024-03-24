@@ -23,6 +23,7 @@ fn build_session_cookie(session_id: &str) -> Cookie<'static> {
     Cookie::build(("session_id", session_id))
         .path("/")
         .same_site(SameSite::Strict)
+        .secure(true)
         .http_only(true)
         .max_age(time::Duration::WEEK)
         .build()
